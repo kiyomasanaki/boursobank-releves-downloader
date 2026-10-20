@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boursobank Relevés Downloader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08060f;
+    --violet:#b98cff;
+    --violet-deep:#7c3aed;
+    --yellow:#ffe14d;
+    --text:#ece9f6;
+    --muted:#9a93b8;
+    --card:rgba(255,255,255,.03);
+    --line:rgba(185,140,255,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Chakra Petch',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    line-height:1.65;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* fond : grille + halos néon */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;
+    background-image:
+      linear-gradient(rgba(185,140,255,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(185,140,255,.06) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 40%,transparent 100%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(600px 400px at 15% 0%,rgba(124,58,237,.28),transparent 70%),
+      radial-gradient(500px 400px at 100% 20%,rgba(255,225,77,.12),transparent 70%);
+  }
+  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:clamp(28px,6vw,72px) 20px 60px}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--violet);
+    border:1px solid var(--line);border-radius:100px;
+    padding:6px 14px;margin-bottom:26px;
+    background:var(--card);
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--yellow);box-shadow:0 0 10px var(--yellow)}
+
+  h1{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(2rem,6.4vw,3.4rem);font-weight:900;line-height:1.08;letter-spacing:.01em;
+    margin-bottom:18px;text-transform:uppercase;
+  }
+  h1 .neon{color:var(--violet);text-shadow:0 0 18px rgba(185,140,255,.55),0 0 40px rgba(124,58,237,.35)}
+  h1 .y{color:var(--yellow);text-shadow:0 0 18px rgba(255,225,77,.5)}
+
+  .lead{color:var(--muted);font-size:clamp(1rem,2.4vw,1.15rem);max-width:54ch;margin-bottom:40px}
+
+  /* zone bouton */
+  .stage{
+    position:relative;display:grid;place-items:center;
+    padding:60px 24px;margin-bottom:14px;
+    border:1px solid var(--line);border-radius:20px;
+    background:linear-gradient(180deg,rgba(124,58,237,.08),transparent),var(--card);
+    overflow:hidden;isolation:isolate;
+  }
+  /* bandeau diagonal qui balaie le cadre au survol, puis disparaît */
+  .stage::before{
+    content:"";position:absolute;top:-25%;left:0;z-index:-1;
+    width:45%;height:150%;pointer-events:none;opacity:0;
+    transform:translateX(-160%) rotate(18deg);
+    background:linear-gradient(90deg,
+      transparent 0%,
+      rgba(185,140,255,.22) 40%,
+      rgba(255,225,77,.38) 50%,
+      rgba(185,140,255,.22) 60%,
+      transparent 100%);
+    filter:blur(4px);
+  }
+  .stage:hover::before{animation:shine .9s ease-out}
+  @keyframes shine{
+    0%{transform:translateX(-160%) rotate(18deg);opacity:0}
+    12%{opacity:1}
+    100%{transform:translateX(320%) rotate(18deg);opacity:0}
+  }
+  .install-hint{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:16px;text-align:center}
+  .bm{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:'Orbitron',sans-serif;font-size:1.02rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    color:#140a28;text-decoration:none;cursor:grab;
+    padding:16px 30px;border-radius:14px;
+    background:linear-gradient(135deg,var(--violet),var(--yellow));
+    box-shadow:0 0 0 1px rgba(255,255,255,.22),0 10px 40px rgba(124,58,237,.5),0 0 60px rgba(185,140,255,.35);
+    transition:transform .15s ease,box-shadow .25s ease;user-select:none;
+  }
+  .bm:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 0 0 1px rgba(255,255,255,.38),0 16px 55px rgba(124,58,237,.65),0 0 90px rgba(255,225,77,.5)}
+  .bm:active{cursor:grabbing;transform:scale(.98)}
+  .bm .ic{font-size:1.2rem}
+
+  /* étapes */
+  .steps{margin:44px 0 0}
+  .steps h2{font-family:'Orbitron',sans-serif;font-size:.82rem;text-transform:uppercase;letter-spacing:.18em;color:var(--violet);margin-bottom:22px}
+  .step{
+    display:flex;gap:16px;align-items:center;padding:16px 18px;margin-bottom:10px;
+    border:1px solid rgba(255,255,255,.06);border-radius:14px;background:var(--card);
+    transition:border-color .2s,background .2s,transform .2s;
+  }
+  .step:hover{border-color:var(--line);background:rgba(185,140,255,.05);transform:translateX(4px)}
+  .step .n{
+    flex:0 0 auto;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+    font-family:'Orbitron',sans-serif;font-weight:700;font-size:.9rem;color:var(--yellow);
+    border:1px solid var(--line);background:rgba(255,225,77,.06);box-shadow:0 0 14px rgba(255,225,77,.18);
+  }
+  .step p{font-size:1rem;color:var(--text)}
+  .step code,.console code,.note code{font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--violet);background:rgba(185,140,255,.1);padding:2px 7px;border-radius:6px}
+
+  .note{margin-top:26px;padding:16px 18px;border-radius:12px;border-left:2px solid var(--yellow);background:rgba(255,225,77,.05);font-size:.92rem;color:var(--muted)}
+  .note b{color:var(--text)}
+  .console{margin-top:30px;font-size:.95rem;color:var(--muted)}
+
+  footer{
+    margin-top:50px;padding-top:22px;border-top:1px solid rgba(255,255,255,.06);
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.05em;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+  footer a{color:var(--violet);text-decoration:none}
+  footer a:hover{color:var(--yellow)}
+
+  @media (prefers-reduced-motion:reduce){.stage:hover::before{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="badge"><span class="dot"></span>bookmarklet · boursobank</span>
+
+  <h1>Télécharge tes <span class="neon">relevés</span><br>en <span class="y">un clic</span></h1>
+  <p class="lead">Fini de cliquer sur chaque PDF un par un. Un seul bouton télécharge tous tes relevés Boursobank d'affilée.</p>
+
+  <div class="stage">
+    <span class="install-hint">// glisse-moi vers ta barre de favoris</span>
+    <a class="bm" id="bm" href="#" draggable="true"><span class="ic">🏦</span> Télécharger mes relevés</a>
+  </div>
+
+  <div class="steps">
+    <h2>Installation</h2>
+    <div class="step"><span class="n">1</span><p>Affiche ta barre de favoris : <code>Ctrl + Maj + B</code>.</p></div>
+    <div class="step"><span class="n">2</span><p><b>Glisse</b> le bouton ci-dessus vers ta barre de favoris, puis relâche.</p></div>
+    <div class="step"><span class="n">3</span><p>Connecte-toi à Boursobank, va sur <code>Documents &gt; Relevés</code>.</p></div>
+    <div class="step"><span class="n">4</span><p>Autorise les téléchargements multiples si le navigateur le demande.</p></div>
+    <div class="step"><span class="n">5</span><p>Clique sur le favori. Les relevés arrivent les uns après les autres.</p></div>
+  </div>
+
+  <div class="note">
+    <b>Pourquoi glisser et pas cliquer ?</b> Chrome n'ajoute pas un bookmarklet depuis un fichier téléchargé. Le glisser-déposer du bouton vers la barre de favoris est la seule méthode fiable.
+  </div>
+
+  <p class="console">Sinon, méthode console : sur la page des relevés, ouvre <code>F12</code>, colle le contenu de <code>boursobank-bulk-statement-downloader.js</code>, puis Entrée.</p>
+
+  <footer>
+    <span>MIT · télécharge uniquement tes propres relevés</span>
+    <a href="https://github.com/kiyomasanaki/boursobank-releves-downloader">github.com/kiyomasanaki</a>
+  </footer>
+</div>
+
+<!-- Code du bookmarklet, brut. Le href draggable est généré au chargement pour gérer accents et emoji. -->
+<textarea id="src" hidden>(async function(){const D=1500,S=['a.c-link--download-pdf','td.documents__action a[href*="statements-document"]'];let L=[];for(const s of S){const q=document.querySelectorAll(s);if(q.length){L=q;break;}}if(!L.length){alert('Aucun releve trouve. Es-tu sur la page Documents > Releves ?');return;}console.log('Found '+L.length+' statement(s)');for(let i=0;i<L.length;i++){L[i].click();console.log('Downloading '+(i+1)+'/'+L.length);if(i<L.length-1)await new Promise(r=>setTimeout(r,D));}console.log('All downloads initiated');})();</textarea>
+
+<script>
+  var code = document.getElementById('src').value;
+  var bm = document.getElementById('bm');
+  bm.href = 'javascript:' + encodeURIComponent(code);
+  // évite qu'un clic sur la page d'install lance le script
+  bm.addEventListener('click', function(e){
+    e.preventDefault();
+    alert("Ne clique pas ici : glisse ce bouton vers ta barre de favoris, puis clique-le sur la page Boursobank des relevés.");
+  });
+</script>
+</body>
+</html>

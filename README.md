@@ -15,7 +15,11 @@ Au lieu de cliquer sur chaque relevé un par un, le script clique sur tous les l
 
 ### 1. Bookmarklet (un clic, recommandé)
 
-Ouvre **`install.html`** dans Chrome, puis glisse le bouton rose vers ta barre de favoris (`Ctrl + Maj + B` pour l'afficher). Ensuite, sur la page des relevés, clique sur le favori.
+**Page d'installation en ligne : https://kiyomasanaki.github.io/boursobank-releves-downloader/**
+
+Ouvre cette page, puis glisse le bouton rose vers ta barre de favoris (`Ctrl + Maj + B` pour l'afficher). Ensuite, sur ta page de relevés Boursobank, clique sur le favori.
+
+Sans passer par la page en ligne, tu peux aussi ouvrir le fichier **`index.html`** du repo directement dans Chrome : c'est la même page.
 
 Note : Chrome ne permet pas d'ajouter un bookmarklet en téléchargeant un fichier. Le glisser-déposer du lien est la seule méthode fiable.
 
@@ -45,7 +49,7 @@ Note : Chrome ne permet pas d'ajouter un bookmarklet en téléchargeant un fichi
 | Fichier | Rôle |
 | --- | --- |
 | `boursobank-bulk-statement-downloader.js` | Script source, lisible, pour la console |
-| `install.html` | Page d'installation du bookmarklet (glisser-déposer) |
+| `index.html` | Page d'installation du bookmarklet (servie par GitHub Pages, glisser-déposer) |
 
 ## 📄 Licence
 
